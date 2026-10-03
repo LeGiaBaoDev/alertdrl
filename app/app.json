@@ -10,7 +10,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.alertdrl.app",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -22,7 +24,9 @@
         {
           "color": "#4F46E5"
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-status-bar"
     ],
     "extra": {
       "backendUrl": "http://localhost:3000"

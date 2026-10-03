@@ -13,10 +13,12 @@ import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -32,6 +34,24 @@ export default function App() {
   const [clock, setClock] = useState(now());
   const [refreshing, setRefreshing] = useState(false);
   const [pushStatus, setPushStatus] = useState('Chưa bật');
+  const urlLoaded = useRef(false);
+
+  // Nạp địa chỉ backend đã lưu (nếu có) khi mở app
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem('backendUrl');
+        if (saved) setBackendUrl(saved);
+      } catch {}
+      urlLoaded.current = true;
+    })();
+  }, []);
+
+  // Lưu lại mỗi khi đổi địa chỉ backend
+  useEffect(() => {
+    if (!urlLoaded.current) return;
+    AsyncStorage.setItem('backendUrl', backendUrl).catch(() => {});
+  }, [backendUrl]);
 
   // Đồng hồ góc phải
   useEffect(() => {
@@ -39,13 +59,17 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
+  const [lastError, setLastError] = useState('');
+
   const loadEvents = useCallback(async () => {
+    const url = `${backendUrl.replace(/\/$/, '')}/events`;
     try {
-      const res = await fetch(`${backendUrl.replace(/\/$/, '')}/events`);
+      const res = await fetch(url);
       const data = await res.json();
       setEvents(data.events || []);
+      setLastError('');
     } catch (e) {
-      // giữ danh sách cũ nếu backend không truy cập được
+      setLastError(`Gọi ${url}\nLỗi: ${e.message}`);
     }
   }, [backendUrl]);
 
@@ -103,7 +127,9 @@ export default function App() {
         >
           {events.length === 0 && (
             <Text style={styles.empty}>
-              Chưa có dữ liệu. Kiểm tra backend ở tab Cài đặt.
+              {lastError
+                ? `Không lấy được dữ liệu.\n\n${lastError}`
+                : 'Chưa có dữ liệu. Kiểm tra backend ở tab Cài đặt.'}
             </Text>
           )}
           {events.map((e, i) => (
@@ -126,10 +152,17 @@ export default function App() {
             (cùng Wi-Fi), ví dụ http://192.168.1.10:3000
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={enablePush}>
-            <Text style={styles.buttonText}>Bật thông báo đẩy</Text>
-          </TouchableOpacity>
-          <Text style={styles.hint}>Trạng thái: {pushStatus}</Text>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoTitle}>🔔 Thông báo sự kiện</Text>
+            <Text style={styles.infoText}>
+              Thông báo được gửi qua ntfy + GitHub Actions, chạy 24/7 kể cả khi
+              app đóng. Cài app ntfy và subscribe topic của bạn để nhận.
+            </Text>
+            <Text style={styles.infoText}>
+              (Push trong app chỉ hoạt động khi build riêng + có Apple Developer,
+              nên ở đây dùng ntfy cho miễn phí.)
+            </Text>
+          </View>
 
           <TouchableOpacity
             style={[styles.button, styles.buttonAlt]}
@@ -297,6 +330,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   hint: { fontSize: 12, color: '#8A90A0', marginTop: 8, lineHeight: 18 },
+  infoBox: {
+    backgroundColor: '#EDE9FE',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 20,
+  },
+  infoTitle: { fontSize: 15, fontWeight: '700', color: '#4F46E5', marginBottom: 6 },
+  infoText: { fontSize: 13, color: '#4B4F63', lineHeight: 19, marginTop: 4 },
   button: {
     backgroundColor: '#4F46E5',
     borderRadius: 14,
