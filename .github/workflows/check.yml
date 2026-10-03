@@ -1,0 +1,48 @@
+name: AlertDRL check
+
+on:
+  schedule:
+    # Mỗi 15 phút. (GitHub tối thiểu 5 phút nhưng lịch hay bị trễ -> 15 phút ổn định hơn)
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {} # cho phép bấm "Run workflow" thủ công để test
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alertdrl-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        working-directory: backend
+        run: npm ci
+
+      # Khôi phục trạng thái sự kiện lần quét trước (để so sánh, tránh báo lại)
+      - name: Restore state
+        uses: actions/cache@v4
+        with:
+          path: backend/data
+          key: alertdrl-state-${{ github.run_id }}
+          restore-keys: |
+            alertdrl-state-
+
+      - name: Run scraper
+        working-directory: backend
+        env:
+          TARGET_URL: ${{ secrets.TARGET_URL }}
+          COOKIE: ${{ secrets.COOKIE }}
+          NTFY_ENABLED: 'true'
+          NTFY_SERVER: 'https://ntfy.sh'
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          EXPO_ENABLED: 'false'
+        run: node src/index.js --once

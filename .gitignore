@@ -1,0 +1,12 @@
+# deps
+node_modules/
+# secrets & local state
+.env
+backend/data/
+backend/captcha.jpg
+# expo
+app/.expo/
+app/dist/
+# misc
+*.log
+.DS_Store

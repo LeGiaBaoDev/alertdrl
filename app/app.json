@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Now Event Notification",
+    "slug": "alertdrl",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alertdrl.app",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
+    },
+    "android": {
+      "package": "com.alertdrl.app"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#4F46E5"
+        }
+      ]
+    ],
+    "extra": {
+      "backendUrl": "http://localhost:3000"
+    }
+  }
+}
