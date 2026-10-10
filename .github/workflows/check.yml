@@ -2,15 +2,18 @@ name: AlertDRL check
 
 on:
   schedule:
-    # Mỗi 5 phút (mức tối thiểu GitHub cho phép) để giữ session chắc hơn.
-    # Lưu ý: cron GitHub hay trễ/skip lúc quá tải nên dù đặt 5p thực tế có thể thưa hơn.
-    - cron: '*/5 * * * *'
+    # Mỗi 15 phút khởi động một job mới. Mỗi job chạy VÒNG LẶP quét ~mỗi 1 phút
+    # trong ~15 phút rồi thoát, job kế tiếp nối đuôi -> gần như quét 1 phút/lần 24/7.
+    # (GitHub cron tối thiểu 5 phút nên không thể đặt 1 phút trực tiếp; vòng lặp trong job
+    #  là cách để đạt ~1 phút/lần. Chỉ MIỄN PHÍ nếu repo PUBLIC.)
+    - cron: '*/15 * * * *'
   workflow_dispatch: {} # cho phép bấm "Run workflow" thủ công để test
 
 permissions:
   contents: read
 
 concurrency:
+  # Không huỷ job đang chạy: job mới xếp hàng, chạy ngay khi job cũ xong -> liên tục.
   group: alertdrl-check
   cancel-in-progress: false
 
@@ -28,7 +31,7 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      # Khôi phục trạng thái sự kiện lần quét trước (để so sánh, tránh báo lại)
+      # Khôi phục trạng thái (events.json + cookie.txt) từ lần chạy trước
       - name: Restore state
         uses: actions/cache@v4
         with:
@@ -37,7 +40,7 @@ jobs:
           restore-keys: |
             alertdrl-state-
 
-      - name: Run scraper
+      - name: Run scraper loop (~1 phút/lần trong ~15 phút)
         working-directory: backend
         env:
           TARGET_URL: ${{ secrets.TARGET_URL }}
@@ -46,4 +49,11 @@ jobs:
           NTFY_SERVER: 'https://ntfy.sh'
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           EXPO_ENABLED: 'false'
-        run: node src/index.js --once
+        run: |
+          # Lặp ~14 phút (chừa ~1 phút để job tiếp theo đã xếp hàng nối liền, tránh chồng).
+          END=$((SECONDS + 840))
+          while [ "$SECONDS" -lt "$END" ]; do
+            node src/index.js --once || true
+            # Dừng sớm nếu không đủ thời gian cho nhịp kế tiếp
+            [ "$SECONDS" -lt "$END" ] && sleep 60
+          done
