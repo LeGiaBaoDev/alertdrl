@@ -78,9 +78,11 @@ export function parseEvents(html) {
   if (!$table) {
     // Có thể cookie hết hạn -> trang trả về form đăng nhập
     if (html.includes('Đăng nhập') || html.toLowerCase().includes('login')) {
-      throw new Error(
+      const err = new Error(
         'Không tìm thấy bảng sự kiện — có thể COOKIE đã hết hạn (trang trả về đăng nhập). Hãy lấy cookie mới.'
       );
+      err.cookieExpired = true; // đánh dấu để index.js cảnh báo qua ntfy
+      throw err;
     }
     throw new Error('Không tìm thấy bảng sự kiện trong HTML.');
   }

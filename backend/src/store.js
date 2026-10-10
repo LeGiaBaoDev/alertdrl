@@ -7,6 +7,7 @@ const DATA_DIR = join(__dirname, '..', 'data');
 const EVENTS_FILE = join(DATA_DIR, 'events.json');
 const TOKENS_FILE = join(DATA_DIR, 'tokens.json');
 const COOKIE_FILE = join(DATA_DIR, 'cookie.txt');
+const ALERT_FILE = join(DATA_DIR, 'last-cookie-alert.txt');
 
 async function ensureDir() {
   await mkdir(DATA_DIR, { recursive: true });
@@ -48,6 +49,22 @@ export async function loadSavedCookie() {
 export async function saveCookie(cookie) {
   await ensureDir();
   await writeFile(COOKIE_FILE, cookie, 'utf8');
+}
+
+// ----- Mốc thời gian lần cuối cảnh báo "cookie hết hạn" (chống spam) -----
+export async function loadLastCookieAlert() {
+  try {
+    const raw = await readFile(ALERT_FILE, 'utf8');
+    const n = Number(raw.trim());
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0; // chưa cảnh báo lần nào
+  }
+}
+
+export async function saveLastCookieAlert(ts = Date.now()) {
+  await ensureDir();
+  await writeFile(ALERT_FILE, String(ts), 'utf8');
 }
 
 // ----- Expo push tokens (từ app native) -----

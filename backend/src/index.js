@@ -6,7 +6,12 @@ import {
   saveEvents,
   loadSavedCookie,
   saveCookie,
+  loadLastCookieAlert,
+  saveLastCookieAlert,
 } from './store.js';
+
+// Chỉ cảnh báo "cookie hết hạn" tối đa 1 lần mỗi 3 tiếng (chống spam vì quét 1 phút/lần)
+const COOKIE_ALERT_INTERVAL_MS = 3 * 60 * 60 * 1000;
 import { diffEvents } from './diff.js';
 import { notify } from './notifier.js';
 import { startServer } from './server.js';
@@ -39,8 +44,24 @@ async function checkOnce() {
     }
 
     await saveEvents(curr);
+
+    // Quét OK -> reset mốc cảnh báo để lần hết hạn sau được báo ngay
+    if ((await loadLastCookieAlert()) !== 0) await saveLastCookieAlert(0);
   } catch (err) {
     console.error(`[${stamp}] ✗ Lỗi khi quét:`, err.message);
+
+    // Cookie hết hạn -> báo ntfy để user biết mà cập nhật (giới hạn 1 lần / 3 tiếng)
+    if (err.cookieExpired) {
+      const last = await loadLastCookieAlert();
+      if (Date.now() - last >= COOKIE_ALERT_INTERVAL_MS) {
+        await notify({
+          title: '⚠️ AlertDRL: COOKIE hết hạn',
+          body: 'Không quét được sự kiện vì cookie đã hết hạn. Hãy lấy PHPSESSID mới và cập nhật secret COOKIE trên GitHub.',
+        });
+        await saveLastCookieAlert();
+        console.log('   → đã gửi cảnh báo cookie hết hạn qua ntfy');
+      }
+    }
   }
 }
 
