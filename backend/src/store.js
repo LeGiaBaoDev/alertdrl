@@ -6,6 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', 'data');
 const EVENTS_FILE = join(DATA_DIR, 'events.json');
 const TOKENS_FILE = join(DATA_DIR, 'tokens.json');
+const COOKIE_FILE = join(DATA_DIR, 'cookie.txt');
 
 async function ensureDir() {
   await mkdir(DATA_DIR, { recursive: true });
@@ -32,6 +33,21 @@ export async function loadPreviousEvents() {
 
 export async function saveEvents(events) {
   await writeJson(EVENTS_FILE, events);
+}
+
+// ----- Cookie mới nhất (được gia hạn/xoay sau mỗi lần quét) -----
+export async function loadSavedCookie() {
+  try {
+    const raw = await readFile(COOKIE_FILE, 'utf8');
+    return raw.trim() || null;
+  } catch {
+    return null; // chưa lưu lần nào
+  }
+}
+
+export async function saveCookie(cookie) {
+  await ensureDir();
+  await writeFile(COOKIE_FILE, cookie, 'utf8');
 }
 
 // ----- Expo push tokens (từ app native) -----

@@ -2,8 +2,9 @@ name: AlertDRL check
 
 on:
   schedule:
-    # Mỗi 15 phút. (GitHub tối thiểu 5 phút nhưng lịch hay bị trễ -> 15 phút ổn định hơn)
-    - cron: '*/15 * * * *'
+    # Mỗi 10 phút để giữ session (idle timeout ASP.NET thường ~20 phút).
+    # Lưu ý: cron GitHub hay trễ/skip nên 10 phút an toàn hơn 15.
+    - cron: '*/10 * * * *'
   workflow_dispatch: {} # cho phép bấm "Run workflow" thủ công để test
 
 permissions:

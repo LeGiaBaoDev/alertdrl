@@ -113,3 +113,7 @@ npx expo start
 - **"COOKIE đã hết hạn"** → lấy cookie mới (phần 1), dán lại vào `.env`, chạy lại.
 - **App không thấy sự kiện** → kiểm tra backend đang chạy và đúng IP ở tab Cài đặt.
 - **ntfy không có thông báo** → kiểm tra đã subscribe đúng topic; thử `npm run once` xem log.
+
+4. Khi cookie hết hạn (backend run sẽ chuyển sang đỏ với lỗi "COOKIE đã hết hạn"):
+- Chạy cd backend && npm run login ở máy → lấy cookie mới
+- Vào repo → Settings → Secrets → COOKIE → Update → dán cookie mới. Xong.
