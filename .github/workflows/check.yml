@@ -10,7 +10,7 @@ on:
   workflow_dispatch: {} # cho phép bấm "Run workflow" thủ công để test
 
 permissions:
-  contents: read
+  contents: write # để đẩy events.json lên nhánh "data" cho app đọc
 
 concurrency:
   # Không huỷ job đang chạy: job mới xếp hàng, chạy ngay khi job cũ xong -> liên tục.
@@ -57,3 +57,32 @@ jobs:
             # Dừng sớm nếu không đủ thời gian cho nhịp kế tiếp
             [ "$SECONDS" -lt "$END" ] && sleep 60
           done
+
+      # Đẩy events.json lên nhánh "data" để app đọc qua URL cố định raw.githubusercontent.
+      # Dùng clone riêng (không đổi working tree chính) để không ảnh hưởng cache cookie.
+      - name: Publish events to data branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [ -f backend/data/events.json ] || { echo "chưa có events.json"; exit 0; }
+          SRC="$RUNNER_TEMP/events.json"; cp backend/data/events.json "$SRC"
+          DIR="$RUNNER_TEMP/pub"; rm -rf "$DIR"
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git clone --depth=1 --branch data "$REMOTE" "$DIR" 2>/dev/null; then
+            :
+          else
+            git clone --depth=1 "$REMOTE" "$DIR"
+            ( cd "$DIR" && git checkout --orphan data && git rm -rf . >/dev/null 2>&1 || true )
+          fi
+          cp "$SRC" "$DIR/events.json"
+          cd "$DIR"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add events.json
+          if git diff --cached --quiet; then
+            echo "events không đổi — bỏ qua"
+          else
+            git commit -m "data: cập nhật events [skip ci]"
+            git push origin data
+          fi
