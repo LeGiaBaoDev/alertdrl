@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "Tham gia cổ vũ Văn nghệ khoa Khoa học Sức khoẻ với chủ đề Thanh âm Khát vọng, năm 2026",
+    "name": "Tham gia cổ vũ Văn nghệ khoa Khoa học Sức khoẻ với chủ đề Thanh âm Khát vọng, năm 2026",
+    "semester": "1/2026 - 2027",
+    "point": "2",
+    "deadline": "13-10-2026",
+    "status": "Đã đăng ký",
+    "current": 400,
+    "max": 400,
+    "isOpen": true
+  }
+]
