@@ -1,5 +1,27 @@
 [
   {
+    "id": "Tham gia cổ vũ Vòng Chung kết Văn nghệ Khoa Công nghệ Cơ khí - MEs GOT TALENT 2026",
+    "name": "Tham gia cổ vũ Vòng Chung kết Văn nghệ Khoa Công nghệ Cơ khí - MEs GOT TALENT 2026",
+    "semester": "1/2026 - 2027",
+    "point": "2",
+    "deadline": "14-10-2026",
+    "status": "Đã đủ số lượng",
+    "current": 200,
+    "max": 200,
+    "isOpen": false
+  },
+  {
+    "id": "Tham gia cổ vũ văn nghệ Khoa Công nghệ Hóa học năm 2026",
+    "name": "Tham gia cổ vũ văn nghệ Khoa Công nghệ Hóa học năm 2026",
+    "semester": "1/2026 - 2027",
+    "point": "2",
+    "deadline": "14-10-2026",
+    "status": "Đã đủ số lượng",
+    "current": 400,
+    "max": 400,
+    "isOpen": false
+  },
+  {
     "id": "Tham gia cổ vũ Văn nghệ khoa Khoa học Sức khoẻ với chủ đề Thanh âm Khát vọng, năm 2026",
     "name": "Tham gia cổ vũ Văn nghệ khoa Khoa học Sức khoẻ với chủ đề Thanh âm Khát vọng, năm 2026",
     "semester": "1/2026 - 2027",
